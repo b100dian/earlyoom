@@ -1,0 +1,35 @@
+From: Vlad G. <b100dian@gmail.com>
+Subject: [PATCH] Make earlyoom.service compatible with systemd 238
+
+Sailfish OS ships systemd 238. The upstream unit uses directives from
+newer systemd versions:
+
+- SystemCallFilter=@system-service: the group exists only since v239.
+  On 238 the allow-list may resolve to almost nothing and the daemon
+  would be killed by seccomp.
+- ProtectClock= (v245), ProtectHostname= (v242), ProtectKernelLogs=
+  (v244): unknown on 238, only produce warnings.
+
+Drop them. This patch must be applied when building the Sailfish RPM.
+---
+--- a/earlyoom.service.in	2026-10-11 21:14:44.484412684 +0200
++++ b/earlyoom.service.in	2026-10-11 21:14:44.484609657 +0200
+@@ -28,9 +28,6 @@
+ # We don't need /home at all, make it inaccessible.
+ ProtectHome=true
+ PrivateDevices=true
+-ProtectClock=true
+-ProtectHostname=true
+-ProtectKernelLogs=true
+ ProtectKernelModules=true
+ ProtectKernelTunables=true
+ ProtectControlGroups=true
+@@ -44,8 +41,6 @@
+ RestrictAddressFamilies=AF_UNIX
+ 
+ SystemCallArchitectures=native
+-SystemCallFilter=@system-service process_mrelease
+-SystemCallFilter=~@privileged
+ 
+ [Install]
+ WantedBy=multi-user.target
